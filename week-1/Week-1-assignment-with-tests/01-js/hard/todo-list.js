@@ -31,7 +31,7 @@ class Todo {
       this.todos[index] = updatedTodo
     }
   }
-
+ 
   getAll(){
     return this.todos
   }
