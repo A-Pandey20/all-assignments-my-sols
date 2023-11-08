@@ -20,6 +20,48 @@ const express = require('express');
 const fs = require('fs');
 const path = require('path');
 const app = express();
+const port = 3000
 
+// callback Fns
+function listAll(req, res){
+  const dirPath = path.join(__dirname, 'files')
+  fs.readdir(dirPath, (err, files) => {
+    const fileList = files.filter((file) => {
+    return fs.statSync(path.join(dirPath, file)).isFile();
+    })
+  
+    res.status(200).json(files)
+  })
+}
+
+
+function getFile(req, res){
+  const fname = req.params.filename
+  const fpath = path.join(path.join(__dirname, 'files'), fname)
+
+  fs.readFile(fpath, 'utf-8', (err, data) => {
+    if(err){
+      res.status(404).send("File not found")
+    }else{
+      res.status(200).json({body:data})
+    }
+  })
+}
+
+
+// endpoints
+app.get('/files', listAll)
+app.get('/file/:filename', getFile)
+
+
+// exception route handling & listen
+app.use((req, res) => {
+  res.status(404).json({error:'Not Found'})
+})
+
+
+app.listen(port, () => {
+  console.log(`Server is running on port ${port}`);
+})
 
 module.exports = app;

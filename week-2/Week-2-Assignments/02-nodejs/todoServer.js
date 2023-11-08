@@ -41,9 +41,84 @@
  */
 const express = require('express');
 const bodyParser = require('body-parser');
+const port = 3000
 
 const app = express();
 
 app.use(bodyParser.json());
+
+// list of all todos
+const todos = []
+
+
+// callback funcs
+function retrieveAll(req, res){
+  const response = todos
+  res.status(200).json(response)
+}
+
+
+function getById(req, res){
+  var todo = todos.find(t => t.id === parseInt(req.params.id))
+  const response = {status:404, todo:null}
+  if(todo){
+    response.status = 200
+    response.todo = todo
+  }
+
+  res.status(response.status).json(response.todo)
+}
+
+
+function createNew(req, res){
+  var todo = {
+    id: Math.floor(Math.random() * 1000000),
+    title: req.body.title,
+    desc: req.body.description,
+    completed: req.body.completed
+  }
+  todos.push(todo)
+  res.status(201).json({id:todo.id})
+}
+
+
+function updateById(req, res){
+  var todoIndex = todos.findIndex(t => t.id === parseInt(req.params.id))
+  if(todoIndex === -1){
+    res.status(404).json({error: "id: ${req.body.id} not present"})
+  }else{
+    todos[todoIndex].completed = req.body.completed
+    res.status(200).json("Successful")
+  }
+}
+
+
+function deleteById(req, res){
+  var todoIndex = todos.findIndex(t => t.id === parseInt(req.params.id));
+  if (todoIndex === -1) {
+    res.status(404).json({error: "id: ${req.body.id} not present"})
+  } else {
+    todos.splice(todoIndex, 1);
+    res.status(200).json("Modified");
+  }
+}
+
+
+// API endpoints
+app.get('/todos', retrieveAll)
+app.get('/todos/:id', getById)
+app.post('/todos', createNew)
+app.put('/todos/:id', updateById)
+app.delete('/todos/:id', deleteById)
+
+// exception route handling & listen
+app.use((req, res) => {
+  res.status(404).json({error:'Not Found'})
+})
+
+
+app.listen(port, () => {
+  console.log(`Server is running on port ${port}`);
+})
 
 module.exports = app;
